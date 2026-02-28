@@ -911,6 +911,15 @@ NINJA_EOF
 
     log_success "  └─ $((_ASHIGARU_COUNT + 3))エージェント分のinbox_watcher起動完了（将軍+家老+足軽${_ASHIGARU_COUNT}+軍師）"
 
+    # idle_monitor.sh を起動
+    if ! pgrep -f "idle_monitor.sh" > /dev/null 2>&1; then
+      nohup bash "$SCRIPT_DIR/scripts/idle_monitor.sh" >> "$SCRIPT_DIR/logs/idle_monitor.log" 2>&1 &
+      disown
+      log_success "  idle_monitor started (PID=$!)"
+    else
+      log_info "  idle_monitor already running"
+    fi
+
     # STEP 6.7 は廃止 — CLAUDE.md Session Start (step 1: tmux agent_id) で各自が自律的に
     # 自分のinstructions/*.mdを読み込む。検証済み (2026-02-08)。
     log_info "📜 指示書読み込みは各エージェントが自律実行（CLAUDE.md Session Start）"
