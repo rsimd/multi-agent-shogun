@@ -415,6 +415,52 @@ If you prefer to install dependencies manually:
 
 </details>
 
+<details>
+<summary>🐚 <b>Zsh</b> (shell choice)</summary>
+
+The project supports **zsh** as well as bash:
+
+- **config/settings.yaml**: Set `shell: zsh` (default is `shell: bash`). This controls the prompt style in tmux panes and which rc file `first_setup.sh` uses for aliases.
+- **shutsujin_departure.sh**: Use `-shell zsh` or `-shell bash` to override for one run (e.g. `./shutsujin_departure.sh -shell zsh`).
+- **first_setup.sh**: If `config/settings.yaml` has `shell: zsh`, it adds the `css`/`csm` aliases and (when installing Claude CLI) PATH to **~/.zshrc** instead of ~/.bashrc. Apply with `source ~/.zshrc`.
+
+Scripts themselves are still run with `bash` (e.g. `bash scripts/inbox_write.sh`); the setting only affects your **interactive shell** and where aliases are written.
+
+</details>
+
+<details>
+<summary>🪙 <b>Nix</b> (all script deps in one shell)</summary>
+
+This repo includes a Nix flake that provides everything the scripts need (so you don’t need Homebrew/apt for these):
+
+| Package | Purpose |
+|---------|--------|
+| tmux | Terminal multiplexer |
+| flock | File locking (inbox_write, inbox_watcher) |
+| coreutils | gtimeout, seq, etc. |
+| fswatch | File watcher on macOS |
+| inotify-tools | File watcher on Linux (inotifywait) |
+| curl | first_setup, ntfy_listener |
+| python3 | venv + PyYAML, all Python scripts |
+| nodejs_20 | MCP (npx), first_setup Node check |
+| bash | Bash 4+ (macOS default is 3.2) |
+
+```bash
+# Enter the dev shell (installs everything above if needed)
+nix develop
+
+# Then run first-time setup (creates .venv, config, Memory MCP)
+./first_setup.sh
+```
+
+With [direnv](https://direnv.net/): run `direnv allow` in the repo; the dev shell loads automatically in this directory.
+
+If Nix reports «path not tracked», add the flake so it can be read: `git add flake.nix .envrc` (or run `nix develop --impure`).
+
+Only **Claude Code CLI** (or Codex/Copilot) is not in the flake; install it as usual (`curl -fsSL https://claude.ai/install.sh | bash` or your CLI’s installer).
+
+</details>
+
 ---
 
 ### After Setup

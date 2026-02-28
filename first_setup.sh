@@ -44,6 +44,14 @@ log_step() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Nix でインストールしたコマンドを検出できるよう、nix profile を PATH に追加
+for _nix_bin in "$HOME/.nix-profile/bin" "/nix/var/nix/profiles/default/bin"; do
+    if [ -d "$_nix_bin" ]; then
+        export PATH="$_nix_bin:$PATH"
+    fi
+done
+unset _nix_bin
+
 # 結果追跡用変数
 RESULTS=()
 HAS_ERROR=false
@@ -494,13 +502,18 @@ if [ "$NEED_CLAUDE_INSTALL" = true ]; then
     # PATHを更新（インストール直後は反映されていない可能性）
     export PATH="$HOME/.local/bin:$PATH"
 
-    # .bashrc に永続化（重複追加を防止）
-    if ! grep -q 'export PATH="\$HOME/.local/bin:\$PATH"' "$HOME/.bashrc" 2>/dev/null; then
-        echo '' >> "$HOME/.bashrc"
-        echo '# Claude Code CLI PATH (added by first_setup.sh)' >> "$HOME/.bashrc"
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
-        log_info "~/.local/bin を ~/.bashrc の PATH に追加しました"
-    fi
+    # 永続化: .bashrc / .zshrc に追加（重複防止）。
+    # ${PATH:-...} で PATH 未設定時も既定パスを使い、Cursor/Emacs 等で zsh が「コマンドなし」にならないようにする。
+    for _rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+        [ -f "$_rc" ] || continue
+        if ! grep -q 'export PATH="\$HOME/.local/bin:' "$_rc" 2>/dev/null; then
+            echo '' >> "$_rc"
+            echo '# Claude Code CLI PATH (added by first_setup.sh)' >> "$_rc"
+            echo 'export PATH="$HOME/.local/bin:${PATH:-/usr/local/bin:/usr/bin:/bin}"' >> "$_rc"
+            log_info "~/.local/bin を $_rc の PATH に追加しました"
+        fi
+    done
+    unset _rc
 
     if command -v claude &> /dev/null; then
         CLAUDE_VERSION=$(claude --version 2>/dev/null || echo "unknown")
@@ -741,12 +754,28 @@ done
 RESULTS+=("実行権限: OK")
 
 # ============================================================
-# STEP 10: bashrc alias設定
+# STEP 10: alias設定（config/settings.yaml の shell に従い .bashrc または .zshrc）
 # ============================================================
 log_step "STEP 10: alias設定"
 
-# alias追加対象ファイル
-BASHRC_FILE="$HOME/.bashrc"
+# config/settings.yaml の shell を読む（未設定・ファイルなしなら bash）
+SETUP_SHELL="bash"
+if [ -f "$SCRIPT_DIR/config/settings.yaml" ]; then
+    _read_shell=$(grep "^shell:" "$SCRIPT_DIR/config/settings.yaml" 2>/dev/null | awk '{print $2}' || true)
+    if [ "$_read_shell" = "zsh" ]; then
+        SETUP_SHELL="zsh"
+    fi
+fi
+unset _read_shell
+
+if [ "$SETUP_SHELL" = "zsh" ]; then
+    RC_FILE="$HOME/.zshrc"
+    RC_LABEL="zshrc"
+else
+    RC_FILE="$HOME/.bashrc"
+    RC_LABEL="bashrc"
+fi
+log_info "シェル設定: $SETUP_SHELL → $RC_FILE に追加します"
 
 # css/csm を関数として定義（destroy-unattached で自動掃除）
 # - 複数端末から接続しても画面サイズが干渉しない
@@ -757,53 +786,65 @@ CSM_FUNC='csm() { local s="multi-$$"; local cols=$(tput cols 2>/dev/null || echo
 
 ALIAS_ADDED=false
 
-if [ -f "$BASHRC_FILE" ]; then
+# sed -i の互換（Darwin は sed -i ''、Linux は sed -i）
+SED_INPLACE() {
+    if [ "$(uname -s)" = "Darwin" ]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+if [ -f "$RC_FILE" ]; then
     # 古い alias 形式を削除（存在する場合）
-    if grep -q "alias css=" "$BASHRC_FILE" 2>/dev/null; then
-        sed -i '/alias css=/d' "$BASHRC_FILE"
+    if grep -q "alias css=" "$RC_FILE" 2>/dev/null; then
+        SED_INPLACE '/alias css=/d' "$RC_FILE"
         log_info "旧 alias css を削除しました"
     fi
-    if grep -q "alias csm=" "$BASHRC_FILE" 2>/dev/null; then
-        sed -i '/alias csm=/d' "$BASHRC_FILE"
+    if grep -q "alias csm=" "$RC_FILE" 2>/dev/null; then
+        SED_INPLACE '/alias csm=/d' "$RC_FILE"
         log_info "旧 alias csm を削除しました"
     fi
 
-    # css 関数
-    if ! grep -q "^css()" "$BASHRC_FILE" 2>/dev/null; then
-        if ! grep -q "multi-agent-shogun aliases" "$BASHRC_FILE" 2>/dev/null; then
-            echo "" >> "$BASHRC_FILE"
-            echo "# multi-agent-shogun aliases (added by first_setup.sh)" >> "$BASHRC_FILE"
+    # css 関数（1行で定義されているため行単位で削除）
+    if ! grep -q "^css()" "$RC_FILE" 2>/dev/null; then
+        if ! grep -q "multi-agent-shogun aliases" "$RC_FILE" 2>/dev/null; then
+            echo "" >> "$RC_FILE"
+            echo "# multi-agent-shogun aliases (added by first_setup.sh)" >> "$RC_FILE"
         fi
-        echo "$CSS_FUNC" >> "$BASHRC_FILE"
+        echo "$CSS_FUNC" >> "$RC_FILE"
         log_info "css 関数を追加しました（将軍ウィンドウ — 自動掃除付き）"
         ALIAS_ADDED=true
     else
-        # 関数は存在する → 最新版に更新
-        sed -i '/^css()/d' "$BASHRC_FILE"
-        echo "$CSS_FUNC" >> "$BASHRC_FILE"
+        SED_INPLACE '/^css()/d' "$RC_FILE"
+        echo "$CSS_FUNC" >> "$RC_FILE"
         log_info "css 関数を更新しました"
         ALIAS_ADDED=true
     fi
 
     # csm 関数
-    if ! grep -q "^csm()" "$BASHRC_FILE" 2>/dev/null; then
-        echo "$CSM_FUNC" >> "$BASHRC_FILE"
+    if ! grep -q "^csm()" "$RC_FILE" 2>/dev/null; then
+        echo "$CSM_FUNC" >> "$RC_FILE"
         log_info "csm 関数を追加しました（家老・足軽ウィンドウ — 自動掃除付き）"
         ALIAS_ADDED=true
     else
-        sed -i '/^csm()/d' "$BASHRC_FILE"
-        echo "$CSM_FUNC" >> "$BASHRC_FILE"
+        SED_INPLACE '/^csm()/d' "$RC_FILE"
+        echo "$CSM_FUNC" >> "$RC_FILE"
         log_info "csm 関数を更新しました"
         ALIAS_ADDED=true
     fi
 else
-    log_warn "$BASHRC_FILE が見つかりません"
+    log_warn "$RC_FILE が見つかりません（zsh の場合は config/settings.yaml で shell: zsh にすると .zshrc に追加されます）"
 fi
 
 if [ "$ALIAS_ADDED" = true ]; then
-    log_success "alias設定を追加しました（destroy-unattached 方式）"
+    log_success "alias設定を $RC_FILE に追加しました（destroy-unattached 方式）"
     log_warn "alias を反映するには、以下のいずれかを実行してください："
-    log_info "  1. source ~/.bashrc"
+    if [ "$SETUP_SHELL" = "zsh" ]; then
+        log_info "  1. source ~/.zshrc"
+    else
+        log_info "  1. source ~/.bashrc"
+    fi
     log_info "  2. PowerShell で 'wsl --shutdown' してからターミナルを開き直す"
     log_info "  ※ ウィンドウを閉じるだけでは WSL が終了しないため反映されません"
 fi
@@ -934,7 +975,11 @@ echo ""
 echo "  ⚠️  初回のみ: 以下を手動で実行してください"
 echo ""
 echo "  STEP 0: PATHの反映（このシェルにインストール結果を反映）"
-echo "     source ~/.bashrc"
+if [ "$SETUP_SHELL" = "zsh" ]; then
+    echo "     source ~/.zshrc"
+else
+    echo "     source ~/.bashrc"
+fi
 echo ""
 echo "  STEP A: OAuth認証 + Bypass Permissions の承認（1コマンドで完了）"
 echo "     claude --dangerously-skip-permissions"
@@ -956,10 +1001,10 @@ echo ""
 echo "  オプション:"
 echo "     ./shutsujin_departure.sh -s            # セットアップのみ（Claude手動起動）"
 echo "     ./shutsujin_departure.sh -t            # Windows Terminalタブ展開"
-echo "     ./shutsujin_departure.sh -shell bash   # bash用プロンプトで起動"
-echo "     ./shutsujin_departure.sh -shell zsh    # zsh用プロンプトで起動"
+echo "     ./shutsujin_departure.sh -shell bash   # bash 用プロンプトで起動"
+echo "     ./shutsujin_departure.sh -shell zsh    # zsh 用プロンプトで起動"
 echo ""
-echo "  ※ シェル設定は config/settings.yaml の shell: でも変更可能です"
+echo "  ※ シェルは config/settings.yaml の shell: (bash|zsh) で指定。zsh のときは first_setup が ~/.zshrc に alias を追加します。"
 echo ""
 echo "  詳細は README.md を参照してください。"
 echo ""
