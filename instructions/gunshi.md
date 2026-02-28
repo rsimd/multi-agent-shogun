@@ -82,7 +82,8 @@ files:
 
 panes:
   karo: multiagent:0.0
-  self: "multiagent:0.8"
+  karo2: multiagent:0.1
+  self: "multiagent:0.2"
 
 inbox:
   write_script: "scripts/inbox_write.sh"

@@ -157,15 +157,16 @@ files:
 
 panes:
   self: multiagent:0.0
+  karo2: multiagent:0.1
+  gunshi: { pane: "multiagent:0.2" }
   ashigaru_default:
-    - { id: 1, pane: "multiagent:0.1" }
-    - { id: 2, pane: "multiagent:0.2" }
-    - { id: 3, pane: "multiagent:0.3" }
-    - { id: 4, pane: "multiagent:0.4" }
-    - { id: 5, pane: "multiagent:0.5" }
-    - { id: 6, pane: "multiagent:0.6" }
-    - { id: 7, pane: "multiagent:0.7" }
-  gunshi: { pane: "multiagent:0.8" }
+    - { id: 1, pane: "multiagent:0.3" }
+    - { id: 2, pane: "multiagent:0.4" }
+    - { id: 3, pane: "multiagent:0.5" }
+    - { id: 4, pane: "multiagent:0.6" }
+    - { id: 5, pane: "multiagent:0.7" }
+    - { id: 6, pane: "multiagent:0.8" }
+    - { id: 7, pane: "multiagent:0.9" }
   agent_id_lookup: "tmux list-panes -t multiagent -F '#{pane_index}' -f '#{==:#{@agent_id},ashigaru{N}}'"
 
 inbox:
@@ -771,7 +772,7 @@ STEP 2: Write task YAML to queue/tasks/gunshi.yaml
   - type: strategy | analysis | design | evaluation | decomposition
   - Include all context_files the Gunshi will need
 STEP 3: Set pane task label
-  tmux set-option -p -t multiagent:0.8 @current_task "戦略立案"
+  tmux set-option -p -t multiagent:0.2 @current_task "戦略立案"
 STEP 4: Send inbox
   bash scripts/inbox_write.sh gunshi "タスクYAMLを読んで分析開始せよ。" task_assigned karo
 STEP 5: Continue dispatching other ashigaru tasks in parallel
@@ -784,7 +785,7 @@ When Gunshi completes:
 1. Read `queue/reports/gunshi_report.yaml`
 2. Use Gunshi's analysis to create/refine ashigaru task YAMLs
 3. Update dashboard.md with Gunshi's findings (if significant)
-4. Reset pane label: `tmux set-option -p -t multiagent:0.8 @current_task ""`
+4. Reset pane label: `tmux set-option -p -t multiagent:0.2 @current_task ""`
 
 ### Gunshi Limitations
 
@@ -830,8 +831,9 @@ Ashigaru handle implementation only: article creation, code changes, file operat
 |-------|-------|------|------|
 | Shogun | Opus | shogun:0.0 | Project oversight |
 | Karo | Sonnet | multiagent:0.0 | Fast task management |
-| Ashigaru 1-7 | Sonnet | multiagent:0.1-0.7 | Implementation |
-| Gunshi | Opus | multiagent:0.8 | Strategic thinking |
+| Karo2 | Auto | multiagent:0.1 | Second commander (agent CLI) |
+| Gunshi | Opus | multiagent:0.2 | Strategic thinking |
+| Ashigaru 1-7 | Sonnet | multiagent:0.3-0.9 | Implementation |
 
 **Default: Assign implementation to ashigaru (Sonnet).** Route strategy/analysis to Gunshi (Opus).
 No model switching needed — each agent has a fixed model matching its role.

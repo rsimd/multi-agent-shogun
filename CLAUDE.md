@@ -4,12 +4,12 @@ version: "3.0"
 updated: "2026-02-07"
 description: "Claude Code + tmux multi-agent parallel dev platform with sengoku military hierarchy"
 
-hierarchy: "Lord (human) → Shogun → Karo → Ashigaru 1-7 / Gunshi"
+hierarchy: "Lord (human) → Shogun → Karo/Karo2 → Ashigaru 1-7 / Gunshi"
 communication: "YAML files + inbox mailbox system (event-driven, NO polling)"
 
 tmux_sessions:
   shogun: { pane_0: shogun }
-  multiagent: { pane_0: karo, pane_1-7: ashigaru1-7, pane_8: gunshi }
+  multiagent: { pane_0: karo, pane_1: karo2, pane_2: gunshi, pane_3-9: ashigaru1-7 }
 
 files:
   config: config/projects.yaml          # Project list (summary)
@@ -64,7 +64,7 @@ language:
 1. Identify self: `tmux display-message -t "$TMUX_PANE" -p '#{@agent_id}'`
 2. `mcp__memory__read_graph` — restore rules, preferences, lessons **(shogun/karo/gunshi only. ashigaru skip this step — task YAML is sufficient)**
 3. **Read `memory/MEMORY.md`** (shogun only) — persistent cross-session memory. If file missing, skip. *Claude Code users: this file is also auto-loaded via Claude Code's memory feature.*
-4. **Read your instructions file**: shogun→`instructions/shogun.md`, karo→`instructions/karo.md`, ashigaru→`instructions/ashigaru.md`, gunshi→`instructions/gunshi.md`. **NEVER SKIP** — even if a conversation summary exists. Summaries do NOT preserve persona, speech style, or forbidden actions.
+4. **Read your instructions file**: shogun→`instructions/shogun.md`, karo→`instructions/karo.md`, karo2→`instructions/karo2.md`, ashigaru→`instructions/ashigaru.md`, gunshi→`instructions/gunshi.md`. **NEVER SKIP** — even if a conversation summary exists. Summaries do NOT preserve persona, speech style, or forbidden actions.
 4. Rebuild state from primary YAML data (queue/, tasks/, reports/)
 5. Review forbidden actions, then start work
 
@@ -180,6 +180,24 @@ Race condition is eliminated: `/clear` wipes old context. Agent re-reads YAML wi
 | Karo → Shogun/Lord | dashboard.md update only | **inbox to shogun FORBIDDEN** — prevents interrupting Lord's input |
 | Karo → Gunshi | YAML + inbox_write | Strategic task or quality check delegation |
 | Top → Down | YAML + inbox_write | Standard wake-up |
+
+## 2家老体制の運用ルール (cmd_173)
+
+| 方向 | 手段 | 備考 |
+|------|------|------|
+| Shogun → karo/karo2 | cmdごとに指定 | 各cmdのYAMLに担当家老記載 |
+| karo ↔ karo2 | inbox_write | ダッシュボード・足軽競合調整 |
+| karo/karo2 → 足軽 | 共有プール | 先に確保した方が使用 |
+| karo/karo2 → gunshi | inbox_write | 両家老から依頼可 |
+
+**ペイン番号（2家老体制）**:
+karo=0.0, karo2=0.1, gunshi=0.2, ashigaru1=0.3, ..., ashigaru7=0.9
+
+**足軽共有プールルール**:
+- 足軽(ashigaru1-7)は共有プール。空いている足軽を先に確保した方が使用。
+- 競合時: inbox_writeで相互調整。
+- dashboard.md: karo/karo2 各自のセクションを更新。
+- 軍師(gunshi): 両家老が利用可能。使用中は inbox で確認。
 
 ## File Operation Rule
 

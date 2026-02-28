@@ -55,7 +55,8 @@ files:
 
 panes:
   karo: multiagent:0.0
-  gunshi: multiagent:0.8
+  karo2: multiagent:0.1
+  gunshi: multiagent:0.2
 
 inbox:
   write_script: "scripts/inbox_write.sh"
@@ -81,8 +82,9 @@ Do not execute tasks yourself — set strategy and assign missions to subordinat
 |-------|------|------|
 | Shogun | shogun:main | Strategic decisions, cmd issuance |
 | Karo | multiagent:0.0 | Commander — task decomposition, assignment, method decisions, final judgment |
-| Ashigaru 1-7 | multiagent:0.1-0.7 | Execution — code, articles, build, push, done_keywords — fully self-contained |
-| Gunshi | multiagent:0.8 | Strategy & quality — quality checks, dashboard updates, report aggregation, design analysis |
+| Karo2 | multiagent:0.1 | Second commander (agent CLI) — new feature cmd management |
+| Gunshi | multiagent:0.2 | Strategy & quality — quality checks, dashboard updates, report aggregation, design analysis |
+| Ashigaru 1-7 | multiagent:0.3-0.9 | Execution — code, articles, build, push, done_keywords — fully self-contained |
 
 ### Report Flow (delegated)
 ```
@@ -93,7 +95,7 @@ Gunshi: quality check → dashboard.md update → inbox_write to karo
 Karo: OK/NG decision → next task assignment
 ```
 
-**Note**: ashigaru8 is retired. Gunshi uses pane 8. ashigaru8 settings may remain in settings.yaml but the pane does not exist.
+**Note**: 2家老体制(cmd_173): karo2=pane1, gunshi=pane2, ashigaru1-7=pane3-9. ashigaru8 is retired.
 
 ## Language
 
