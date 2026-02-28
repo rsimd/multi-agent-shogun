@@ -6,11 +6,12 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_FILE="$REPO_DIR/logs/idle_monitor.log"
 SESSION="multiagent"
-# pane_index -> agent_id mapping (gunshi=0.8, ashigaru1-7=0.1-0.7)
+# pane_index -> agent_id mapping (cmd_173以降: karo=0.0,karo2=0.1は監視対象外)
+# ashigaru1-7=0.2-0.8, gunshi=0.9
 declare -A PANE_AGENT=(
-  ["0.1"]="ashigaru1" ["0.2"]="ashigaru2" ["0.3"]="ashigaru3"
-  ["0.4"]="ashigaru4" ["0.5"]="ashigaru5" ["0.6"]="ashigaru6"
-  ["0.7"]="ashigaru7" ["0.8"]="gunshi"
+  ["0.2"]="ashigaru1" ["0.3"]="ashigaru2" ["0.4"]="ashigaru3"
+  ["0.5"]="ashigaru4" ["0.6"]="ashigaru5" ["0.7"]="ashigaru6"
+  ["0.8"]="ashigaru7" ["0.9"]="gunshi"
 )
 mkdir -p "$REPO_DIR/logs" /tmp/idle_monitor_state
 
