@@ -7,7 +7,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOG_FILE="$REPO_DIR/logs/idle_monitor.log"
 SESSION="multiagent"
 # pane_index -> agent_id mapping (cmd_173: 殿最終指示 管理層先・実行層後)
-# karo=0.0, karo2=0.1 は監視対象外（管理層）
+# karo=0.0, komadukai=0.1 は監視対象外（管理層）
 # gunshi=0.2, ashigaru1-7=0.3-0.9
 declare -A PANE_AGENT=(
   ["0.2"]="gunshi"

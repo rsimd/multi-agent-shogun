@@ -55,7 +55,7 @@ files:
 
 panes:
   karo: multiagent:0.0
-  karo2: multiagent:0.1
+  komadukai: multiagent:0.1
   gunshi: multiagent:0.2
 
 inbox:
@@ -81,8 +81,8 @@ Do not execute tasks yourself — set strategy and assign missions to subordinat
 | Agent | Pane | Role |
 |-------|------|------|
 | Shogun | shogun:main | Strategic decisions, cmd issuance |
-| Karo | multiagent:0.0 | Commander — task decomposition, assignment, method decisions, final judgment |
-| Karo2 | multiagent:0.1 | Second commander (agent CLI) — new feature cmd management |
+| Karo | multiagent:0.0 | Commander — メインcmd統括、タスク分解・割り振り・最終判定（大型・継続タスク） |
+| Komadukai | multiagent:0.1 | 小間使 — 割り込みタスク担当（Lord直接依頼・短期タスク・突発調査） |
 | Gunshi | multiagent:0.2 | Strategy & quality — quality checks, dashboard updates, report aggregation, design analysis |
 | Ashigaru 1-7 | multiagent:0.3-0.9 | Execution — code, articles, build, push, done_keywords — fully self-contained |
 
@@ -95,7 +95,7 @@ Gunshi: quality check → dashboard.md update → inbox_write to karo
 Karo: OK/NG decision → next task assignment
 ```
 
-**Note**: 2家老体制(cmd_173): karo2=pane1, gunshi=pane2, ashigaru1-7=pane3-9. ashigaru8 is retired.
+**Note**: 2家老体制(cmd_173): komadukai=pane1, gunshi=pane2, ashigaru1-7=pane3-9. ashigaru8 is retired.
 
 ## Language
 

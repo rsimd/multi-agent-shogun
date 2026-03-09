@@ -99,7 +99,7 @@ files:
 
 panes:
   karo: multiagent:0.0
-  karo2: multiagent:0.1
+  komadukai: multiagent:0.1
   self_template: "multiagent:0.{N+2}"  # ashigaru1=0.3, ..., ashigaru7=0.9 (cmd_173 2家老体制)
 
 inbox:

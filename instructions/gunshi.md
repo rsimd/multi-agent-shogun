@@ -82,7 +82,7 @@ files:
 
 panes:
   karo: multiagent:0.0
-  karo2: multiagent:0.1
+  komadukai: multiagent:0.1
   self: "multiagent:0.2"
 
 inbox:

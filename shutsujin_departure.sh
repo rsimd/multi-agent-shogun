@@ -403,7 +403,7 @@ EOF
     echo "inbox:" > ./queue/ntfy_inbox.yaml
 
     # agent inbox リセット
-    for agent in shogun karo karo2 $_ASHIGARU_IDS_STR gunshi; do
+    for agent in shogun karo komadukai $_ASHIGARU_IDS_STR gunshi; do
         echo "messages:" > "./queue/inbox/${agent}.yaml"
     done
 
@@ -530,7 +530,7 @@ echo ""
 PANE_BASE=$(tmux show-options -gv pane-base-index 2>/dev/null || echo 0)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STEP 5.1: multiagent セッション作成（10ペイン：karo + karo2 + gunshi + ashigaru1-7）
+# STEP 5.1: multiagent セッション作成（10ペイン：karo + komadukai + gunshi + ashigaru1-7）
 # ═══════════════════════════════════════════════════════════════════════════════
 log_war "⚔️ 家老・家老2・足軽・軍師の陣を構築中（10名配備）..."
 
@@ -559,19 +559,19 @@ else
     tmux set-environment -t multiagent DISPLAY_MODE "shout"
 fi
 
-# 10ペイングリッド作成（karo, karo2, gunshi, ashigaru1-7）
+# 10ペイングリッド作成（karo, komadukai, gunshi, ashigaru1-7）
 # ペイン番号は pane-base-index に依存（0 または 1）
 # 方針: 9ペインを split で作り（初期1ペイン+9回split=10ペイン）、tiled レイアウトで整列
-# 配置順は pane index 順: karo(0), karo2(1), gunshi(2), ashigaru1-7(3-9)
+# 配置順は pane index 順: karo(0), komadukai(1), gunshi(2), ashigaru1-7(3-9)
 for _split_i in $(seq 1 9); do
     tmux split-window -t "multiagent:agents"
     tmux select-layout -t "multiagent:agents" tiled
 done
 
 # ペインラベル・エージェントID・色設定 — settings.yaml から動的に構築
-# 配置順: karo(0.0), karo2(0.1), gunshi(0.2), ashigaru1-7(0.3-0.9)
-PANE_LABELS=("karo" "karo2" "gunshi")
-AGENT_IDS=("karo" "karo2" "gunshi")
+# 配置順: karo(0.0), komadukai(0.1), gunshi(0.2), ashigaru1-7(0.3-0.9)
+PANE_LABELS=("karo" "komadukai" "gunshi")
+AGENT_IDS=("karo" "komadukai" "gunshi")
 PANE_COLORS=("red" "red" "yellow")
 for _ai in $_ASHIGARU_IDS_STR; do
     PANE_LABELS+=("$_ai")
@@ -584,7 +584,7 @@ MODEL_NAMES=()
 for _ai in "${AGENT_IDS[@]}"; do
     if [[ "$_ai" == "gunshi" ]]; then
         MODEL_NAMES+=("Opus")
-    elif [[ "$_ai" == "karo" || "$_ai" == "karo2" ]]; then
+    elif [[ "$_ai" == "karo" || "$_ai" == "komadukai" ]]; then
         MODEL_NAMES+=("Sonnet")
     elif [ "$KESSEN_MODE" = true ]; then
         MODEL_NAMES+=("Opus")
@@ -716,22 +716,22 @@ with open(f,'w') as fh: yaml.safe_dump(d, fh, default_flow_style=False, allow_un
 
     # 家老2（pane 1）: CLI Adapter経由でコマンド構築（デフォルト: Sonnet）
     p=$((PANE_BASE + 1))
-    _karo2_cli_type="claude"
-    _karo2_cmd="claude --model sonnet --dangerously-skip-permissions"
+    _komadukai_cli_type="claude"
+    _komadukai_cmd="claude --model sonnet --dangerously-skip-permissions"
     if [ "$CLI_ADAPTER_LOADED" = true ]; then
-        _karo2_cli_type=$(get_cli_type "karo2")
-        _karo2_cmd=$(build_cli_command "karo2")
+        _komadukai_cli_type=$(get_cli_type "komadukai")
+        _komadukai_cmd=$(build_cli_command "komadukai")
     fi
-    _startup_prompt=$(get_startup_prompt "karo2" 2>/dev/null)
+    _startup_prompt=$(get_startup_prompt "komadukai" 2>/dev/null)
     if [[ -n "$_startup_prompt" ]]; then
-        _karo2_cmd="$_karo2_cmd \"$_startup_prompt\""
+        _komadukai_cmd="$_komadukai_cmd \"$_startup_prompt\""
     fi
-    tmux set-option -p -t "multiagent:agents.${p}" @agent_cli "$_karo2_cli_type"
-    tmux send-keys -t "multiagent:agents.${p}" "$_karo2_cmd"
+    tmux set-option -p -t "multiagent:agents.${p}" @agent_cli "$_komadukai_cli_type"
+    tmux send-keys -t "multiagent:agents.${p}" "$_komadukai_cmd"
     tmux send-keys -t "multiagent:agents.${p}" Enter
-    _karo2_display=$(get_model_display_name "karo2" 2>/dev/null || echo "Sonnet")
-    tmux set-option -p -t "multiagent:agents.${p}" @model_name "$_karo2_display" 2>/dev/null || true
-    log_info "  └─ 家老2（${_karo2_display}）、召喚完了"
+    _komadukai_display=$(get_model_display_name "komadukai" 2>/dev/null || echo "Sonnet")
+    tmux set-option -p -t "multiagent:agents.${p}" @model_name "$_komadukai_display" 2>/dev/null || true
+    log_info "  └─ 家老2（${_komadukai_display}）、召喚完了"
 
     if [ "$KESSEN_MODE" = true ]; then
         # 決戦の陣: CLI Adapter経由（claudeはOpus強制）
@@ -895,7 +895,7 @@ NINJA_EOF
 
     # inbox ディレクトリ初期化（シンボリックリンク先のLinux FSに作成）
     mkdir -p "$SCRIPT_DIR/logs"
-    for agent in shogun karo karo2 $_ASHIGARU_IDS_STR gunshi; do
+    for agent in shogun karo komadukai $_ASHIGARU_IDS_STR gunshi; do
         [ -f "$SCRIPT_DIR/queue/inbox/${agent}.yaml" ] || echo "messages:" > "$SCRIPT_DIR/queue/inbox/${agent}.yaml"
     done
 
@@ -920,9 +920,9 @@ NINJA_EOF
     disown
 
     # 家老2のwatcher
-    _karo2_watcher_cli=$(tmux show-options -p -t "multiagent:agents.$((PANE_BASE+1))" -v @agent_cli 2>/dev/null || echo "claude")
-    nohup bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" karo2 "multiagent:agents.$((PANE_BASE+1))" "$_karo2_watcher_cli" \
-        >> "$SCRIPT_DIR/logs/inbox_watcher_karo2.log" 2>&1 &
+    _komadukai_watcher_cli=$(tmux show-options -p -t "multiagent:agents.$((PANE_BASE+1))" -v @agent_cli 2>/dev/null || echo "claude")
+    nohup bash "$SCRIPT_DIR/scripts/inbox_watcher.sh" komadukai "multiagent:agents.$((PANE_BASE+1))" "$_komadukai_watcher_cli" \
+        >> "$SCRIPT_DIR/logs/inbox_watcher_komadukai.log" 2>&1 &
     disown
 
     # 足軽のwatcher
@@ -1055,7 +1055,7 @@ echo "     ┌─────────┬─────────┬──
 echo "     │  karo   │ashigaru1│ashigaru5│                   │"
 echo "     │  (家老) │ (足軽1) │ (足軽5) │                   │"
 echo "     ├─────────┼─────────┼─────────┤       htop        │"
-echo "     │  karo2  │ashigaru2│ashigaru6│     (monitor)     │"
+echo "     │  komadukai  │ashigaru2│ashigaru6│     (monitor)     │"
 echo "     │ (家老2) │ (足軽2) │ (足軽6) │                   │"
 echo "     ├─────────┼─────────┼─────────┤                   │"
 echo "     │ gunshi  │ashigaru3│ashigaru7│                   │"
