@@ -623,6 +623,21 @@ tmux set-option -t multiagent -w pane-border-status top
 tmux set-option -t multiagent -w pane-border-format '#{?pane_active,#[reverse],}#[bold]#{@agent_id}#[default] (#{@model_name}) #{@current_task}'
 
 log_success "  └─ 家老・家老2・足軽・軍師の陣、構築完了"
+
+# htop モニターペイン追加（2ペイン分の幅で大きく表示）
+# 一旦2つ split して tiled で整列後、2つ目を削除 → htop が2ペイン分の幅を占有
+ASHIGARU7_PANE=$((PANE_BASE + 9))
+tmux split-window -h -t "multiagent:agents.${ASHIGARU7_PANE}" 'htop'
+HTOP_PANE=$((ASHIGARU7_PANE + 1))
+tmux split-window -h -t "multiagent:agents.${HTOP_PANE}" 'sleep infinity'
+DUMMY_PANE=$((HTOP_PANE + 1))
+tmux select-layout -t "multiagent:agents" tiled
+tmux kill-pane -t "multiagent:agents.${DUMMY_PANE}"
+# htop ペインのラベル設定
+tmux set-option -p -t "multiagent:agents.${HTOP_PANE}" @agent_id "htop"
+tmux set-option -p -t "multiagent:agents.${HTOP_PANE}" @model_name "monitor"
+tmux set-option -p -t "multiagent:agents.${HTOP_PANE}" @current_task ""
+log_success "  └─ htop モニターペイン（2ペイン幅）、配備完了"
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1035,20 +1050,20 @@ echo "     ┌──────────────────────
 echo "     │  Pane 0: 将軍 (SHOGUN)      │  ← 総大将・プロジェクト統括"
 echo "     └─────────────────────────────┘"
 echo ""
-echo "     【multiagentセッション】家老・家老2・軍師・足軽の陣（10ペイン）"
-echo "     ┌─────────┬─────────┬─────────┐"
-echo "     │  karo   │ashigaru1│ashigaru5│"
-echo "     │  (家老) │ (足軽1) │ (足軽5) │"
-echo "     ├─────────┼─────────┼─────────┤"
-echo "     │  karo2  │ashigaru2│ashigaru6│"
-echo "     │ (家老2) │ (足軽2) │ (足軽6) │"
-echo "     ├─────────┼─────────┼─────────┤"
-echo "     │ gunshi  │ashigaru3│ashigaru7│"
-echo "     │ (軍師)  │ (足軽3) │         │"
-echo "     ├─────────┼─────────┤         │"
-echo "     │         │ashigaru4│         │"
-echo "     │         │ (足軽4) │         │"
-echo "     └─────────┴─────────┴─────────┘"
+echo "     【multiagentセッション】家老・家老2・軍師・足軽の陣（11ペイン）"
+echo "     ┌─────────┬─────────┬─────────┬───────────────────┐"
+echo "     │  karo   │ashigaru1│ashigaru5│                   │"
+echo "     │  (家老) │ (足軽1) │ (足軽5) │                   │"
+echo "     ├─────────┼─────────┼─────────┤       htop        │"
+echo "     │  karo2  │ashigaru2│ashigaru6│     (monitor)     │"
+echo "     │ (家老2) │ (足軽2) │ (足軽6) │                   │"
+echo "     ├─────────┼─────────┼─────────┤                   │"
+echo "     │ gunshi  │ashigaru3│ashigaru7│                   │"
+echo "     │ (軍師)  │ (足軽3) │         │                   │"
+echo "     ├─────────┼─────────┤         │                   │"
+echo "     │         │ashigaru4│         │                   │"
+echo "     │         │ (足軽4) │         │                   │"
+echo "     └─────────┴─────────┴─────────┴───────────────────┘"
 echo ""
 
 echo ""
